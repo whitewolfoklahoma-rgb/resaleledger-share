@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ResaleLedger — Inventory &amp; Profit Bookkeeper for Resellers</title>
+<style>
+:root{
+  --ink:#1d2422; --muted:#66736e; --bg:#f2f6f4; --card:#ffffff;
+  --accent:#0f766e; --accent-d:#0b5a54; --sage:#5b8c5a; --sage-d:#477046;
+  --line:#d8e2dc; --bad:#b3372a; --badbg:#fdeeec; --warn:#9a6a12; --warnbg:#fdf4dd;
+  --good:#2e7d32; --goodbg:#e9f5e9; --radius:12px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.45;}
+header.app{background:linear-gradient(135deg,#083f3a,#0f766e 55%,#14a08f);color:#fff;padding:16px 16px 10px;}
+header.app h1{margin:0;font-size:24px;letter-spacing:.2px;}
+header.app .sub{opacity:.92;font-size:13px;margin-top:2px;}
+header.app .biz{font-weight:700;font-size:14px;margin-top:6px;}
+nav.tabs{display:flex;overflow-x:auto;background:#083f3a;padding:0 6px 8px;gap:4px;scrollbar-width:none;}
+nav.tabs::-webkit-scrollbar{display:none;}
+nav.tabs button{flex:0 0 auto;min-height:42px;padding:8px 14px;border:0;border-radius:20px;background:rgba(255,255,255,.16);color:#fff;font-size:14.5px;font-weight:600;cursor:pointer;}
+nav.tabs button.active{background:#bfe8e0;color:#06302b;}
+main{max-width:1060px;margin:0 auto;padding:14px 12px 40px;}
+section.tab{display:none;}
+section.tab.active{display:block;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:14px;box-shadow:0 1px 2px rgba(20,50,45,.05);}
+.card h2{margin:0 0 8px;font-size:18px;}
+.card h3{margin:14px 0 6px;font-size:15.5px;}
+.hint{color:var(--muted);font-size:13px;}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px;}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px;}
+.stat .k{font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+.stat .v{font-size:22px;font-weight:800;margin-top:2px;}
+.stat .s{font-size:12.5px;color:var(--muted);}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+th,td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top;}
+th{font-size:12.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);}
+td.num,th.num{text-align:right;}
+tr:last-child td{border-bottom:none;}
+tr.tot td{font-weight:800;border-top:2px solid var(--ink);}
+.tblwrap{overflow-x:auto;}
+form .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:3px;}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid #b9c8c1;border-radius:8px;font-size:15px;background:#fff;color:var(--ink);}
+input:focus,select:focus,textarea:focus{outline:2px solid #7fd1c4;border-color:var(--accent);}
+textarea{resize:vertical;}
+.checks{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:4px;}
+.checks label{font-weight:500;font-size:14px;display:flex;align-items:center;gap:6px;margin:0;}
+.checks input{width:auto;padding:0;}
+.btn{display:inline-block;border:0;border-radius:9px;padding:10px 16px;font-size:14.5px;font-weight:700;cursor:pointer;min-height:44px;}
+.btn.primary{background:var(--accent);color:#fff;}
+.btn.primary:hover{background:var(--accent-d);}
+.btn.ghost{background:#e6efeb;color:var(--ink);border:1px solid var(--line);}
+.btn.small{padding:6px 10px;min-height:34px;font-size:13px;border-radius:7px;min-height:40px;}
+.btn.danger{background:#f3d9d5;color:var(--bad);}
+.btn.armed{background:var(--bad);color:#fff;}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.badge{display:inline-block;padding:1px 8px;border-radius:20px;font-size:12px;font-weight:700;}
+.badge.low{background:var(--badbg);color:var(--bad);}
+.badge.warnb{background:var(--warnbg);color:var(--warn);}
+.badge.ok{background:var(--goodbg);color:var(--good);}
+.badge.mut{background:#e8ecea;color:var(--muted);}
+.alertbox{background:var(--warnbg);border:1px solid #ecd9a0;border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;}
+.alertbox.bad{background:var(--badbg);border-color:#efc4bf;}
+.alertbox h3{margin:0 0 4px;font-size:15px;}
+.warnline{color:var(--bad);font-size:13.5px;font-weight:600;margin-top:8px;display:none;}
+footer.app{max-width:1060px;margin:0 auto;padding:0 12px 30px;color:var(--muted);font-size:12.5px;}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:#1d2422;color:#fff;padding:11px 18px;border-radius:24px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:99;max-width:92vw;text-align:center;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#printArea{display:none;}
+@media (max-width:640px){
+  header.app h1{font-size:21px;}
+  th,td{padding:6px 5px;font-size:13px;}
+}
+@media print{
+  header.app, nav.tabs, main, footer.app, #toast{display:none !important;}
+  #printArea{display:block !important;font-family:Georgia,serif;color:#000;padding:10px;}
+  #printArea h1{font-size:20px;margin:0 0 2px;}
+  #printArea h2{font-size:15px;margin:16px 0 6px;border-bottom:1.5px solid #000;padding-bottom:2px;}
+  #printArea table{font-size:12.5px;}
+  #printArea th,#printArea td{border-bottom:1px solid #999;}
+  #printArea .muted{color:#444;font-size:12px;}
+}
+</style>
+</head>
+<body>
+<header class="app">
+  <h1>🏷️ ResaleLedger</h1>
+  <div class="sub">Inventory &amp; profit bookkeeper for resellers — what you paid, what it sold for, what you actually kept.</div>
+  <div class="biz" id="bizNameHdr"></div>
+</header>
+<nav class="tabs" id="tabbar">
+  <button data-tab="dashboard" class="active">Dashboard</button>
+  <button data-tab="inventory">Inventory</button>
+  <button data-tab="sales">Sales</button>
+  <button data-tab="sourcing">Sourcing Trips</button>
+  <button data-tab="money">Money &amp; Taxes</button>
+  <button data-tab="settings">Settings &amp; Backup</button>
+  <button data-tab="help">Help</button>
+</nav>
+<main>
+
+<!-- ============ DASHBOARD ============ -->
+<section class="tab active" id="tab-dashboard">
+  <div class="alertbox" id="demoBanner" style="display:none;">
+    <h3>👋 You're looking at sample data</h3>
+    <div>A part-time reseller is loaded so you can see real numbers right away — a dozen items, sales on eBay, Poshmark, Mercari and locally, even one return. When you're ready, clear the samples in Settings — anything you add yourself is kept.</div>
+  </div>
+  <div class="alertbox bad" id="deadAlert" style="display:none;"></div>
+  <div class="cards" id="dashStats"></div>
+  <div class="card">
+    <h2>Recent sales</h2>
+    <div id="dashRecent"></div>
+  </div>
+  <div class="card">
+    <h2>Oldest stock</h2>
+    <p class="hint">The longer an item sits, the more of your money is sitting with it. Items at 90+ days get a nudge; 180+ days is the dead pile — reprice it, bundle it, donate it, or cut it loose.</p>
+    <div id="dashOldest"></div>
+  </div>
+</section>
+
+<!-- ============ INVENTORY ============ -->
+<section class="tab" id="tab-inventory">
+  <div class="card">
+    <h2 id="itemFormTitle">Add an item</h2>
+    <form id="itemForm">
+      <div class="grid">
+        <div><label for="itTitle">Item title *</label><input id="itTitle" type="text" maxlength="140" placeholder="e.g. Vintage Levi's 501 jeans, W32"></div>
+        <div><label for="itCategory">Category</label><select id="itCategory"></select></div>
+        <div><label for="itSourceType">Where it came from</label><select id="itSourceType"></select></div>
+        <div><label for="itSourceName">Source name</label><input id="itSourceName" type="text" maxlength="80" placeholder="e.g. Goodwill, Maple St."></div>
+        <div><label for="itTrip">Sourcing trip (optional)</label><select id="itTrip"></select></div>
+        <div><label for="itDate">Date acquired *</label><input id="itDate" type="date"></div>
+        <div><label for="itCost">What you paid for it ($)</label><input inputmode="decimal" id="itCost" type="number" step="0.01" min="0" placeholder="0.00"></div>
+        <div><label for="itAlloc">Extra cost to get it ($)</label><input inputmode="decimal" id="itAlloc" type="number" step="0.01" min="0" placeholder="0.00"></div>
+        <div><label for="itBin">Storage bin / location</label><input id="itBin" type="text" maxlength="40" placeholder="e.g. Bin A1, Garage shelf 2"></div>
+        <div><label for="itStatus">Status</label><select id="itStatus"></select></div>
+        <div><label for="itAsk">Asking price ($)</label><input inputmode="decimal" id="itAsk" type="number" step="0.01" min="0" placeholder="0.00"></div>
+      </div>
+      <div style="margin-top:10px;">
+        <label>Listed on</label>
+        <div class="checks" id="itPlatforms"></div>
+      </div>
+      <div style="margin-top:10px;"><label for="itNotes">Notes</label><textarea id="itNotes" rows="2" maxlength="400" placeholder="Condition, flaws, measurements…"></textarea></div>
+      <div class="warnline" id="itemWarn"></div>
+      <div class="btnrow">
+        <button type="submit" class="btn primary" id="itemSaveBtn">Add item</button>
+        <button type="button" class="btn ghost" id="itemCancelBtn" style="display:none;">Cancel edit</button>
+      </div>
+      <p class="hint">"Extra cost to get it" is for splitting a buy-trip's cost across items — gas, an entry fee, shipping on a wholesale lot. Your true cost per item = price paid + this amount. Status "Sold" is set automatically when you record a sale.</p>
+    </form>
+  </div>
+  <div class="card">
+    <h2>Your inventory</h2>
+    <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:10px;">
+      <div><label for="invFilter">Show</label><select id="invFilter">
+        <option value="active">In stock + listed</option>
+        <option value="stock">In stock only</option>
+        <option value="listed">Listed only</option>
+        <option value="sold">Sold</option>
+        <option value="gone">Donated / dead</option>
+        <option value="all">Everything</option>
+      </select></div>
+      <div><label for="invSearch">Search</label><input id="invSearch" type="text" placeholder="title, bin, source…"></div>
+    </div>
+    <div id="invStats" class="hint" style="margin-bottom:8px;"></div>
+    <div class="tblwrap"><table>
+      <thead><tr><th>Item</th><th>Source</th><th>Acquired</th><th class="num">Age</th><th class="num">Your cost</th><th class="num">Asking</th><th>Status</th><th></th></tr></thead>
+      <tbody id="invBody"></tbody>
+    </table></div>
+  </div>
+  <div class="card">
+    <h2>🧟 The dead pile — aging report</h2>
+    <p class="hint">Unsold items sitting 90+ days, and the cash buried in them. 180+ days is dead-pile territory.</p>
+    <div id="agingReport"></div>
+  </div>
+</section>
+
+<!-- ============ SALES ============ -->
+<section class="tab" id="tab-sales">
+  <div class="card">
+    <h2>Record a sale</h2>
+    <form id="saleForm">
+      <div class="grid">
+        <div><label for="saItem">Item *</label><select id="saItem"></select></div>
+        <div><label for="saDate">Sale date *</label><input id="saDate" type="date"></div>
+        <div><label for="saPlatform">Platform *</label><select id="saPlatform"></select></div>
+        <div><label for="saPrice">Sale price ($) *</label><input inputmode="decimal" id="saPrice" type="number" step="0.01" min="0" placeholder="0.00"></div>
+        <div><label for="saFeePct">Platform fee % *</label><input inputmode="decimal" id="saFeePct" type="number" step="0.01" min="0" max="100" placeholder="e.g. 13"></div>
+        <div><label for="saShipCharged">Shipping charged to buyer ($)</label><input inputmode="decimal" id="saShipCharged" type="number" step="0.01" min="0" placeholder="0.00"></div>
+        <div><label for="saShipCost">Shipping you paid ($)</label><input inputmode="decimal" id="saShipCost" type="number" step="0.01" min="0" placeholder="0.00"></div>
+        <div><label for="saOther">Other costs ($)</label><input inputmode="decimal" id="saOther" type="number" step="0.01" min="0" placeholder="0.00"></div>
+      </div>
+      <div style="margin-top:10px;"><label for="saNotes">Notes</label><input id="saNotes" type="text" maxlength="300" placeholder="Buyer, promoted listing, packaging… (optional)"></div>
+      <div class="warnline" id="saleWarn"></div>
+      <div class="btnrow"><button type="submit" class="btn primary">Record sale</button></div>
+      <p class="hint" id="feeHint">Fees change — the % saved with each sale is the one you enter here, taken from the platform's payout statement for that sale. Set your usual % per platform in Settings and it pre-fills; what you type here is what's kept with the sale forever.</p>
+    </form>
+  </div>
+  <div class="card" id="returnCard" style="display:none;">
+    <h2>↩️ Mark a sale as returned</h2>
+    <form id="returnForm">
+      <div class="grid">
+        <div><label for="rtSale">Sale</label><select id="rtSale"></select></div>
+        <div><label for="rtDate">Return date *</label><input id="rtDate" type="date"></div>
+        <div><label for="rtShip">Return shipping you paid ($)</label><input inputmode="decimal" id="rtShip" type="number" step="0.01" min="0" placeholder="0.00"></div>
+      </div>
+      <div class="warnline" id="returnWarn"></div>
+      <div class="btnrow">
+        <button type="submit" class="btn primary">Mark returned</button>
+        <button type="button" class="btn ghost" id="rtCancel">Cancel</button>
+      </div>
+      <p class="hint">A return reverses the whole sale — price, fee, and cost of goods come back off the books — and the item goes back into stock. You're out the shipping both ways: the outbound shipping you paid plus any return shipping. See Help for the exact convention.</p>
+    </form>
+  </div>
+  <div class="card">
+    <h2>Sales ledger</h2>
+    <div id="salesStats" class="hint" style="margin-bottom:8px;"></div>
+    <div class="tblwrap"><table>
+      <thead><tr><th>Date</th><th>Item</th><th>Platform</th><th class="num">Price</th><th class="num">Fee</th><th class="num">Ship net</th><th class="num">COGS</th><th class="num">Net profit</th><th></th></tr></thead>
+      <tbody id="salesBody"></tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ============ SOURCING ============ -->
+<section class="tab" id="tab-sourcing">
+  <div class="card">
+    <h2 id="tripFormTitle">Log a sourcing trip</h2>
+    <form id="tripForm">
+      <div class="grid">
+        <div><label for="trDate">Date *</label><input id="trDate" type="date"></div>
+        <div><label for="trSource">Source *</label><input id="trSource" type="text" maxlength="80" placeholder="e.g. Goodwill Outlet, Estate sale on Elm"></div>
+        <div><label for="trKind">Kind</label><select id="trKind"></select></div>
+        <div><label for="trSpent">Total spent ($) *</label><input inputmode="decimal" id="trSpent" type="number" step="0.01" min="0" placeholder="0.00"></div>
+        <div><label for="trCount">Items bought *</label><input inputmode="decimal" id="trCount" type="number" step="1" min="0" placeholder="0"></div>
+      </div>
+      <div style="margin-top:10px;"><label for="trNotes">Notes</label><input id="trNotes" type="text" maxlength="300" placeholder="What was hot, what to skip next time…"></div>
+      <div class="warnline" id="tripWarn"></div>
+      <div class="btnrow">
+        <button type="submit" class="btn primary" id="tripSaveBtn">Add trip</button>
+        <button type="button" class="btn ghost" id="tripCancelBtn" style="display:none;">Cancel edit</button>
+      </div>
+    </form>
+  </div>
+  <div class="card">
+    <h2>Trip history</h2>
+    <div id="tripStats" class="hint" style="margin-bottom:8px;"></div>
+    <div class="tblwrap"><table>
+      <thead><tr><th>Date</th><th>Source</th><th class="num">Spent</th><th class="num">Items</th><th class="num">Avg cost / item</th><th class="num">Logged here</th><th></th></tr></thead>
+      <tbody id="tripBody"></tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ============ MONEY ============ -->
+<section class="tab" id="tab-money">
+  <div class="card">
+    <h2>Money views</h2>
+    <div style="max-width:220px;"><label for="moneyYear">Period</label><select id="moneyYear"></select></div>
+    <div class="cards" id="moneyStats" style="margin-top:12px;"></div>
+    <h3>Profit by platform</h3>
+    <div class="tblwrap"><table>
+      <thead><tr><th>Platform</th><th class="num">Sales</th><th class="num">Gross</th><th class="num">Fees</th><th class="num">Net profit</th></tr></thead>
+      <tbody id="byPlatformBody"></tbody>
+    </table></div>
+    <h3>Profit by month</h3>
+    <div class="tblwrap"><table>
+      <thead><tr><th>Month</th><th class="num">Sales</th><th class="num">Gross</th><th class="num">Net profit</th></tr></thead>
+      <tbody id="byMonthBody"></tbody>
+    </table></div>
+    <h3>Profit by category</h3>
+    <div class="tblwrap"><table>
+      <thead><tr><th>Category</th><th class="num">Sales</th><th class="num">Gross</th><th class="num">Net profit</th></tr></thead>
+      <tbody id="byCategoryBody"></tbody>
+    </table></div>
+  </div>
+  <div class="card">
+    <h2>🧾 Tax-season summary</h2>
+    <div style="max-width:220px;"><label for="taxYear">Tax year</label><select id="taxYear"></select></div>
+    <div id="taxSummary" style="margin-top:10px;"></div>
+    <div class="btnrow">
+      <button type="button" class="btn primary" id="printTaxBtn">🖨️ Print tax summary</button>
+      <button type="button" class="btn ghost" id="printInvBtn">🖨️ Print inventory valuation</button>
+    </div>
+    <p class="hint">These are your bookkeeping records, organized the way a Schedule C is organized. They are <b>not</b> tax advice and not a filed return — hand the printout to your tax preparer and they'll take it from there.</p>
+  </div>
+</section>
+
+<!-- ============ SETTINGS ============ -->
+<section class="tab" id="tab-settings">
+<div class="card"><h3 style="margin-top:0">Legal</h3><p>Terms of Use, the applicable disclaimer, our privacy statement, and your recorded acceptance.</p><button type="button" class="btn ww-legal-open-btn" data-ww-legal="1">⚖️ Legal — Terms, Disclaimer &amp; Privacy</button></div>
+  <div class="card">
+    <h2>Your seller info</h2>
+    <form id="settingsForm">
+      <div class="grid">
+        <div><label for="setSeller">Your name</label><input id="setSeller" type="text" maxlength="80"></div>
+        <div><label for="setBiz">Shop / business name</label><input id="setBiz" type="text" maxlength="80"></div>
+      </div>
+      <h3>Usual platform fee % — pre-fills the sale form</h3>
+      <p class="hint">Platform fees change, and they depend on your seller level, category, and promotions — so ResaleLedger ships with these <b>blank on purpose</b>. Look at a recent payout statement from each platform, enter the % that sale actually cost you, and update it when the platform changes its fees. Every sale keeps the % you confirmed for that sale, so history never changes when a platform raises fees.</p>
+      <div class="grid" id="feeGrid"></div>
+      <div class="btnrow"><button type="submit" class="btn primary">Save settings</button></div>
+    </form>
+  </div>
+  <div class="card">
+    <h2>Backup &amp; restore</h2>
+    <p class="hint">Everything lives in this browser on this device. Export a backup file regularly — it's the only copy. Importing a backup replaces what's currently in the app.</p>
+    <div class="btnrow">
+      <button type="button" class="btn primary" id="exportBtn">⬇️ Export backup (JSON)</button>
+      <label class="btn ghost" style="cursor:pointer;">⬆️ Import from file<input type="file" id="importFile" accept=".json,application/json" style="display:none;"></label>
+    </div>
+    <div style="margin-top:12px;"><label for="importText">…or paste backup JSON here</label><textarea id="importText" rows="3" placeholder="Paste the contents of a ResaleLedger backup file"></textarea></div>
+    <div class="btnrow"><button type="button" class="btn ghost" id="importTextBtn">Import pasted backup</button></div>
+    <div class="warnline" id="importWarn"></div>
+  </div>
+  <div class="card">
+    <h2>Sample data &amp; erase</h2>
+    <div class="btnrow">
+      <button type="button" class="btn ghost" id="clearDemoBtn">Clear sample data only</button>
+      <button type="button" class="btn danger" id="eraseBtn">Erase EVERYTHING</button>
+    </div>
+    <p class="hint">"Erase EVERYTHING" deletes all items, sales, trips, and settings from this browser and starts empty. It cannot be undone — export a backup first.</p>
+  </div>
+</section>
+
+<!-- ============ HELP ============ -->
+<section class="tab" id="tab-help">
+  <div class="card">
+    <h2>How ResaleLedger works</h2>
+    <h3>The idea</h3>
+    <p>One file, no account, no subscription, and — read this part twice — <b>no connection to eBay, Poshmark, Mercari, Depop, or Whatnot</b>. ResaleLedger does not crosslist, does not sync, and never asks for your platform logins. It's the bookkeeping half of reselling: what you paid, where it's listed, what it sold for, what the platform kept, and what actually landed in your pocket. You type a sale in about fifteen seconds; the math is the app's job.</p>
+    <h3>Your true cost per item</h3>
+    <p><b>Item cost = price paid + "extra cost to get it."</b> The extra field is where a sourcing trip's gas, an estate-sale entry fee, or the shipping on a wholesale lot gets spread across the items it bought. That total is the COGS used when the item sells — and it's snapshotted onto the sale, so repricing or correcting the item later never rewrites a past sale.</p>
+    <h3>Net profit on a sale</h3>
+    <p><b>Profit = sale price + shipping charged to the buyer − platform fee − shipping you paid − other costs − item cost.</b> The platform fee is the % you enter on the sale (pre-filled from Settings if you've set one) × the sale price, rounded to cents and stored with the sale. Shipping the buyer paid you counts as income; shipping you paid the carrier counts as a cost — if they cancel out, they cancel out honestly.</p>
+    <h3>Returns</h3>
+    <p>When a sale is marked returned, the whole sale reverses: price, shipping charged, fee, other costs, and COGS all come back off the books, and the item returns to stock. What doesn't come back is postage: <b>a returned sale's net = − (outbound shipping you paid) − (return shipping you paid)</b>. That's how returns actually feel, because it's what they actually cost. If your platform kept part of its fee on a return, record that kept amount as an "other cost" on a fresh note in the sale's notes… or simpler: most platforms refund the fee on a full refund, which is the case this convention assumes — check your statement for big-ticket items.</p>
+    <h3>Sell-through &amp; days to sell</h3>
+    <p><b>Sell-through = items sold in the period ÷ items acquired in the period.</b> A return doesn't count as sold. <b>Days to sell</b> averages (sale date − date acquired) across completed sales. Both are shown for the period you pick in Money &amp; Taxes.</p>
+    <h3>Aging &amp; the dead pile</h3>
+    <p>Age counts from the date acquired for anything unsold. 90+ days gets flagged; 180+ days is the dead pile. The dollar figure next to it is your own cash sitting on a shelf — the report exists to make that number annoying enough to act on.</p>
+    <h3>Fees are yours to enter — on purpose</h3>
+    <p>Platform fees change with time, category, seller level, and promotions. Any app that hard-codes "eBay = 13.25%" is lying to you by spring. ResaleLedger ships the fee fields blank, asks you to copy the real % off your payout statements, and then keeps the % you confirmed frozen on each sale forever.</p>
+    <h3>Your data</h3>
+    <p>Everything is stored in this browser's local storage on this device only. Clearing your browser's site data erases it — export backups from Settings and keep the file somewhere safe. A backup from this app re-imports into any copy of ResaleLedger, and only ResaleLedger — it won't touch your other books.</p>
+    <h3>Taxes</h3>
+    <p>The tax-season summary organizes a year's records the way a Schedule C is organized: gross sales, cost of goods sold, platform fees, shipping, other costs, and net. It's bookkeeping, not tax advice, and not a return. Most resellers who sell regularly are a business in the IRS's eyes whether they file like one or not — a tax preparer is worth it, and this printout is what they'll ask for.</p>
+  </div>
+</section>
+</main>
+<footer class="app">ResaleLedger — a one-time-purchase tool. No account, no subscription, no platform logins, works offline. Your records never leave this device.</footer>
+<div id="toast"></div>
+<div id="printArea"></div>
+
+<script>
+"use strict";
+/* ================= ResaleLedger ================= */
+var LS_KEY = "resaleledger_v1";
+var APP_TAG = "resaleledger";
+var PLATFORMS = [
+  {k:"ebay", label:"eBay"},
+  {k:"poshmark", label:"Poshmark"},
+  {k:"mercari", label:"Mercari"},
+  {k:"depop", label:"Depop"},
+  {k:"whatnot", label:"Whatnot"},
+  {k:"facebook", label:"Facebook Marketplace"},
+  {k:"local", label:"Local / in person"},
+  {k:"other", label:"Other"}
+];
+var CATEGORIES = ["Clothing","Shoes","Accessories","Jewelry","Electronics","Home & Kitchen","Toys & Games","Media","Sporting Goods","Collectibles","Other"];
+var SOURCE_TYPES = [
+  {k:"thrift", label:"Thrift store"},
+  {k:"garage", label:"Garage / yard sale"},
+  {k:"estate", label:"Estate sale"},
+  {k:"wholesale", label:"Wholesale / bulk lot"},
+  {k:"closet", label:"Own closet"},
+  {k:"retail", label:"Retail clearance"},
+  {k:"other", label:"Other"}
+];
+var ITEM_STATUSES = [
+  {k:"stock", label:"In stock"},
+  {k:"listed", label:"Listed"},
+  {k:"sold", label:"Sold"},
+  {k:"donated", label:"Donated"},
+  {k:"dead", label:"Dead / written off"}
+];
+
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function num(v){ var n = parseFloat(v); return (isFinite(n) && !isNaN(n)) ? n : 0; }
+function clampNonNeg(v){ var n = num(v); return n < 0 ? 0 : n; }
+function clampMoney(v){ var n = num(v); if(n > 999999999) n = 999999999; if(n < 0) n = 0; return n; }
+function round2(v){ return Math.round(num(v)*100)/100; }
+function money(v){ var n = round2(v); var neg = n < 0; var s = Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ","); return (neg?"-$":"$") + s; }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function todayStr(){ var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
+function daysAgoStr(n){ var d = new Date(); d.setDate(d.getDate()-n); return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
+function isValidDateStr(s){
+  if(typeof s !== "string") return false;
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s); if(!m) return false;
+  var y = +m[1], mo = +m[2], d = +m[3];
+  var dt = new Date(Date.UTC(y, mo-1, d));
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === mo-1 && dt.getUTCDate() === d;
+}
+function fmtDate(s){ if(!isValidDateStr(s)) return esc(s||""); var p = s.split("-"); return (+p[1]) + "/" + (+p[2]) + "/" + p[0]; }
+function daysBetween(a, b){ /* whole days from a to b, both YYYY-MM-DD */
+  if(!isValidDateStr(a) || !isValidDateStr(b)) return 0;
+  var pa = a.split("-"), pb = b.split("-");
+  var da = Date.UTC(+pa[0], +pa[1]-1, +pa[2]), db = Date.UTC(+pb[0], +pb[1]-1, +pb[2]);
+  return Math.round((db - da) / 86400000);
+}
+var _toastTimer = null;
+function toast(msg){
+  var t = $("toast"); if(!t) return;
+  t.textContent = msg; t.classList.add("show");
+  if(_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 2600);
+}
+function platformLabel(k){ for(var i=0;i<PLATFORMS.length;i++) if(PLATFORMS[i].k===k) return PLATFORMS[i].label; return "Other"; }
+function sourceLabel(k){ for(var i=0;i<SOURCE_TYPES.length;i++) if(SOURCE_TYPES[i].k===k) return SOURCE_TYPES[i].label; return "Other"; }
+function statusLabel(k){ for(var i=0;i<ITEM_STATUSES.length;i++) if(ITEM_STATUSES[i].k===k) return ITEM_STATUSES[i].label; return k; }
+
+/* ---------- state ---------- */
+function defaultFees(){ var f = {}; PLATFORMS.forEach(function(p){ f[p.k] = null; }); return f; }
+function defaultState(){
+  return { app: APP_TAG, settings: { sellerName:"", businessName:"", fees: defaultFees() }, items: [], sales: [], trips: [], meta: { seeded:false, demoCleared:false } };
+}
+function sanitizeItem(r){
+  if(!r || typeof r !== "object") return null;
+  if(!isValidDateStr(r.dateAcquired)) return null;
+  var title = String(r.title||"").slice(0,140); if(!title) return null;
+  var status = "stock";
+  ITEM_STATUSES.forEach(function(s){ if(r.status === s.k) status = s.k; });
+  var plats = [];
+  if(Array.isArray(r.platforms)) r.platforms.forEach(function(k){ if(platformLabel(k) !== "Other" || k === "other"){ if(plats.indexOf(k) < 0) plats.push(k); } });
+  return {
+    id: String(r.id || uid()), title: title,
+    category: CATEGORIES.indexOf(r.category) >= 0 ? r.category : "Other",
+    sourceType: SOURCE_TYPES.some(function(s){ return s.k === r.sourceType; }) ? r.sourceType : "other",
+    sourceName: String(r.sourceName||"").slice(0,80),
+    tripId: r.tripId ? String(r.tripId) : null,
+    dateAcquired: r.dateAcquired,
+    itemCost: clampMoney(r.itemCost), tripAlloc: clampMoney(r.tripAlloc),
+    bin: String(r.bin||"").slice(0,40), status: status,
+    platforms: plats, askingPrice: clampMoney(r.askingPrice),
+    notes: String(r.notes||"").slice(0,400), demo: !!r.demo
+  };
+}
+function sanitizeTrip(r){
+  if(!r || typeof r !== "object") return null;
+  if(!isValidDateStr(r.date)) return null;
+  var source = String(r.source||"").slice(0,80); if(!source) return null;
+  return {
+    id: String(r.id || uid()), date: r.date, source: source,
+    kind: SOURCE_TYPES.some(function(s){ return s.k === r.kind; }) ? r.kind : "other",
+    totalSpent: clampMoney(r.totalSpent),
+    itemCount: Math.max(0, Math.round(num(r.itemCount))),
+    notes: String(r.notes||"").slice(0,300), demo: !!r.demo
+  };
+}
+function sanitizeSale(r, itemIds){
+  if(!r || typeof r !== "object") return null;
+  if(!isValidDateStr(r.date)) return null;
+  if(!r.itemId || !itemIds[String(r.itemId)]) return null;
+  var plat = "other";
+  PLATFORMS.forEach(function(p){ if(r.platform === p.k) plat = p.k; });
+  var feePct = Math.min(100, Math.max(0, num(r.feePct)));
+  var price = clampMoney(r.salePrice);
+  var returned = !!r.returned;
+  return {
+    id: String(r.id || uid()), itemId: String(r.itemId), date: r.date, platform: plat,
+    itemTitle: String(r.itemTitle||"").slice(0,140), category: CATEGORIES.indexOf(r.category) >= 0 ? r.category : "Other",
+    salePrice: price, feePct: feePct,
+    feeAmt: round2(price * feePct / 100),
+    shipCharged: clampMoney(r.shipCharged), shipCost: clampMoney(r.shipCost),
+    otherCosts: clampMoney(r.otherCosts), cogs: clampMoney(r.cogs),
+    notes: String(r.notes||"").slice(0,300),
+    returned: returned,
+    returnDate: returned && isValidDateStr(r.returnDate) ? r.returnDate : null,
+    returnShipCost: returned ? clampMoney(r.returnShipCost) : 0,
+    demo: !!r.demo
+  };
+}
+function sanitizeState(raw){
+  var st = defaultState();
+  if(!raw || typeof raw !== "object") return st;
+  var s = (raw.settings && typeof raw.settings === "object") ? raw.settings : {};
+  st.settings.sellerName = String(s.sellerName||"").slice(0,80);
+  st.settings.businessName = String(s.businessName||"").slice(0,80);
+  if(s.fees && typeof s.fees === "object"){
+    PLATFORMS.forEach(function(p){
+      var v = s.fees[p.k];
+      st.settings.fees[p.k] = (v === null || v === "" || v === undefined) ? null : Math.min(100, Math.max(0, num(v)));
+    });
+  }
+  if(Array.isArray(raw.trips)) raw.trips.forEach(function(r){ var t = sanitizeTrip(r); if(t) st.trips.push(t); });
+  if(Array.isArray(raw.items)) raw.items.forEach(function(r){ var it = sanitizeItem(r); if(it) st.items.push(it); });
+  var tripIds = {}; st.trips.forEach(function(t){ tripIds[t.id] = true; });
+  st.items.forEach(function(it){ if(it.tripId && !tripIds[it.tripId]) it.tripId = null; });
+  var itemIds = {}; st.items.forEach(function(it){ itemIds[it.id] = true; });
+  if(Array.isArray(raw.sales)) raw.sales.forEach(function(r){ var sa = sanitizeSale(r, itemIds); if(sa) st.sales.push(sa); });
+  st.meta = { seeded: !!(raw.meta && raw.meta.seeded), demoCleared: !!(raw.meta && raw.meta.demoCleared) };
+  st.legal = (raw.legal && typeof raw.legal==='object') ? {termsVersion:String(raw.legal.termsVersion||''), acceptedDate:String(raw.legal.acceptedDate||''), disclaimerShown:!!raw.legal.disclaimerShown} : null;
+  return st;
+}
+var state = defaultState();
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+function load(){
+  var raw = null;
+  try{ raw = localStorage.getItem(LS_KEY); }catch(e){}
+  if(!raw){ state = defaultState(); seedDemo(); save(); return; }
+  try{
+    var parsed = JSON.parse(raw);
+    if(!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("bad shape");
+    state = sanitizeState(parsed);
+  }catch(e){
+    try{ localStorage.setItem(LS_KEY + "_corrupt_backup", raw); }catch(_){}
+    state = defaultState(); seedDemo();
+  }
+  save();
+}
+function seedDemo(){
+  if(state.meta.seeded || state.meta.demoCleared) return;
+  if(state.items.length || state.sales.length || state.trips.length) return;
+  var T = [];
+  function trip(daysAgo, source, kind, spent, count, notes){ var t = { id: uid()+"t"+T.length, date: daysAgoStr(daysAgo), source: source, kind: kind, totalSpent: spent, itemCount: count, notes: notes, demo: true }; T.push(t); state.trips.push(t); return t; }
+  var trip1 = trip(30, "Goodwill Outlet (the bins)", "thrift", 46.00, 8, "Clothing was picked over; electronics bin paid off.");
+  var trip2 = trip(12, "Maple Street garage sales", "garage", 24.00, 6, "Three sales on one block. Media and toys cheap.");
+  function item(daysAgo, title, cat, srcType, srcName, tripRef, cost, alloc, bin, status, plats, ask, notes){
+    var it = { id: uid()+"i"+state.items.length, title: title, category: cat, sourceType: srcType, sourceName: srcName, tripId: tripRef ? tripRef.id : null,
+      dateAcquired: daysAgoStr(daysAgo), itemCost: cost, tripAlloc: alloc, bin: bin, status: status, platforms: plats, askingPrice: ask, notes: notes, demo: true };
+    state.items.push(it); return it;
+  }
+  item(25, "Vintage Levi's 501 Jeans W32", "Clothing", "thrift", "Goodwill", trip1, 6.50, 0, "Bin A1", "listed", ["ebay","poshmark"], 45, "Stonewash, honest wear at cuffs.");
+  var sneakers = item(34, "Nike Air Max Sneakers 10.5", "Shoes", "garage", "Maple St. garage sale", trip2, 12.00, 0, "Bin A2", "stock", [], 0, "");
+  var pyrex = item(50, "Pyrex Primary Colors Mixing Bowl Set", "Home & Kitchen", "estate", "Estate sale — Elm Dr.", null, 8.00, 0, "Shelf K1", "stock", [], 0, "No chips; lids missing.");
+  var walkman = item(55, "Sony Walkman WM-FX195", "Electronics", "thrift", "Goodwill Outlet (the bins)", trip1, 5.00, 0, "Bin E1", "listed", ["ebay"], 55, "Plays; belt replaced.");
+  item(100, "Coach Leather Crossbody Purse", "Accessories", "thrift", "Goodwill", trip1, 18.00, 0, "Bin A3", "listed", ["poshmark","mercari"], 85, "Creed patch checks out.");
+  item(200, "LEGO Star Wars UCS-Style Set (sealed)", "Toys & Games", "wholesale", "Wholesale lot — Tulsa", null, 40.00, 0, "Garage shelf 1", "stock", [], 120, "Box has shelf wear.");
+  var vinyl = item(28, "Fleetwood Mac — Rumours LP (1977 press)", "Media", "garage", "Maple St. garage sale", trip2, 3.00, 0, "Crate M1", "stock", [], 0, "VG+ sleeve and disc.");
+  item(15, "Women's Denim Trucker Jacket M", "Clothing", "closet", "Own closet", null, 0.00, 0, "Bin A1", "listed", ["depop"], 38, "");
+  item(190, "Ceramic Table Lamp — Mid-Century", "Home & Kitchen", "thrift", "Salvation Army", null, 7.50, 0, "Garage shelf 2", "stock", [], 25, "Needs a shade; wiring good.");
+  var catan = item(20, "Catan Board Game (complete)", "Toys & Games", "thrift", "Goodwill", trip1, 4.00, 0, "Shelf T1", "stock", [], 0, "Counted — all pieces present.");
+  item(45, "Sterling Silver Bracelet — Turquoise", "Jewelry", "estate", "Estate sale — Elm Dr.", null, 15.00, 0, "Safe box", "listed", ["ebay"], 60, "Stamped 925.");
+  item(9, "Kids' Bike Helmet S", "Sporting Goods", "garage", "Maple St. garage sale", trip2, 2.00, 0, "Bin S1", "donated", [], 0, "Sat too long — donated.");
+  function sale(daysAgo, it, platform, price, feePct, shipCharged, shipCost, other, returned, retDaysAgo, retShip){
+    var sa = { id: uid()+"s"+state.sales.length, itemId: it.id, date: daysAgoStr(daysAgo), platform: platform,
+      itemTitle: it.title, category: it.category, salePrice: price, feePct: feePct, feeAmt: round2(price*feePct/100),
+      shipCharged: shipCharged, shipCost: shipCost, otherCosts: other, cogs: round2(num(it.itemCost)+num(it.tripAlloc)),
+      notes: "", returned: !!returned, returnDate: returned ? daysAgoStr(retDaysAgo) : null, returnShipCost: returned ? retShip : 0, demo: true };
+    state.sales.push(sa); return sa;
+  }
+  sale(20, sneakers, "ebay", 64.00, 13, 6.95, 7.40, 0.50, false, 0, 0); sneakers.status = "sold";
+  sale(18, pyrex, "poshmark", 38.00, 20, 0, 0, 0, false, 0, 0); pyrex.status = "sold";
+  sale(40, walkman, "ebay", 49.99, 13, 5.50, 5.10, 0.25, true, 30, 5.10); /* returned — Walkman stays listed */
+  sale(10, vinyl, "local", 25.00, 0, 0, 0, 0, false, 0, 0); vinyl.status = "sold";
+  sale(8, catan, "mercari", 29.99, 10, 0, 6.20, 0, false, 0, 0); catan.status = "sold";
+  state.meta.seeded = true;
+}
+function hasDemo(){ return state.items.some(function(x){return x.demo;}) || state.sales.some(function(x){return x.demo;}) || state.trips.some(function(x){return x.demo;}); }
+function clearDemo(){
+  var soldItemIds = {};
+  state.sales = state.sales.filter(function(s){ if(s.demo){ return false; } return true; });
+  state.items = state.items.filter(function(x){ return !x.demo; });
+  state.trips = state.trips.filter(function(x){ return !x.demo; });
+  /* any user sale referencing a removed demo item was dropped by sanitize rules on next load; keep in-memory consistent: */
+  var itemIds = {}; state.items.forEach(function(it){ itemIds[it.id] = true; });
+  state.sales = state.sales.filter(function(s){ return !!itemIds[s.itemId]; });
+  state.meta.demoCleared = true;
+  save();
+}
+function itemById(id){ for(var i=0;i<state.items.length;i++) if(state.items[i].id===id) return state.items[i]; return null; }
+function tripById(id){ for(var i=0;i<state.trips.length;i++) if(state.trips[i].id===id) return state.trips[i]; return null; }
+function saleById(id){ for(var i=0;i<state.sales.length;i++) if(state.sales[i].id===id) return state.sales[i]; return null; }
+
+/* ---------- math ---------- */
+function itemTotalCost(it){ return round2(num(it.itemCost) + num(it.tripAlloc)); }
+function itemAgeDays(it){ var d = daysBetween(it.dateAcquired, todayStr()); return d < 0 ? 0 : d; }
+function isActive(it){ return it.status === "stock" || it.status === "listed"; }
+function saleNet(s){
+  if(s.returned) return round2(-num(s.shipCost) - num(s.returnShipCost));
+  return round2(num(s.salePrice) + num(s.shipCharged) - num(s.feeAmt) - num(s.shipCost) - num(s.otherCosts) - num(s.cogs));
+}
+function saleShipNet(s){ return round2(num(s.shipCharged) - num(s.shipCost)); }
+function salesInYear(year){ return state.sales.filter(function(s){ return s.date.slice(0,4) === String(year); }); }
+function inventoryAtCost(){ return round2(state.items.filter(isActive).reduce(function(t,it){ return t + itemTotalCost(it); }, 0)); }
+function inventoryAtAsk(){ return round2(state.items.filter(isActive).reduce(function(t,it){ return t + num(it.askingPrice); }, 0)); }
+function agedItems(minDays){ return state.items.filter(function(it){ return isActive(it) && itemAgeDays(it) >= minDays; }); }
+function agedCost(list){ return round2(list.reduce(function(t,it){ return t + itemTotalCost(it); }, 0)); }
+function completedSales(list){ return list.filter(function(s){ return !s.returned; }); }
+function periodStats(year){ /* year = "all" or "2026" */
+  var sales = year === "all" ? state.sales.slice() : salesInYear(year);
+  var comp = completedSales(sales);
+  var gross = round2(comp.reduce(function(t,s){ return t + num(s.salePrice); }, 0));
+  var fees = round2(comp.reduce(function(t,s){ return t + num(s.feeAmt); }, 0));
+  var profit = round2(sales.reduce(function(t,s){ return t + saleNet(s); }, 0));
+  var acquired = year === "all" ? state.items.length : state.items.filter(function(it){ return it.dateAcquired.slice(0,4) === String(year); }).length;
+  var soldCount = comp.length;
+  var sellThrough = acquired > 0 ? (soldCount / acquired * 100) : 0;
+  var dts = comp.map(function(s){ var it = itemById(s.itemId); return it ? daysBetween(it.dateAcquired, s.date) : 0; });
+  var avgDays = dts.length ? dts.reduce(function(a,b){ return a+b; }, 0) / dts.length : 0;
+  return { sales: sales, completed: comp, gross: gross, fees: fees, profit: profit, acquired: acquired, soldCount: soldCount, sellThrough: sellThrough, avgDays: avgDays };
+}
+
+/* ---------- rendering ---------- */
+function showTab(name){
+  var btns = document.querySelectorAll("#tabbar button");
+  for(var i=0;i<btns.length;i++) btns[i].classList.toggle("active", btns[i].getAttribute("data-tab") === name);
+  var secs = document.querySelectorAll("section.tab");
+  for(var j=0;j<secs.length;j++) secs[j].classList.toggle("active", secs[j].id === "tab-" + name);
+}
+function statCard(k, v, s){ return '<div class="stat"><div class="k">' + esc(k) + '</div><div class="v">' + esc(v) + '</div><div class="s">' + esc(s||"") + '</div></div>'; }
+function ageBadge(it){
+  var age = itemAgeDays(it);
+  if(!isActive(it)) return '<span class="badge mut">' + age + 'd</span>';
+  if(age >= 180) return '<span class="badge low">' + age + 'd · DEAD PILE</span>';
+  if(age >= 90) return '<span class="badge warnb">' + age + 'd · aging</span>';
+  return '<span class="badge ok">' + age + 'd</span>';
+}
+function renderHeader(){ $("bizNameHdr").textContent = state.settings.businessName || state.settings.sellerName || ""; }
+function renderDashboard(){
+  var active = state.items.filter(isActive);
+  var all = periodStats("all");
+  var dead = agedItems(180);
+  $("demoBanner").style.display = hasDemo() ? "block" : "none";
+  var da = $("deadAlert");
+  if(dead.length){
+    da.style.display = "block";
+    da.innerHTML = "<h3>🧟 Dead pile: " + money(agedCost(dead)) + " sitting unsold 180+ days</h3><div>" + dead.length + " item" + (dead.length===1?"":"s") + " — that's your cash on a shelf. Reprice, bundle, cross-post, or donate and take the shelf back. Full list in Inventory → aging report.</div>";
+  } else da.style.display = "none";
+  $("dashStats").innerHTML =
+    statCard("Items in stock", String(active.length), state.items.length + " items tracked total") +
+    statCard("Inventory at cost", money(inventoryAtCost()), "what your shelves cost you") +
+    statCard("Value at asking", money(inventoryAtAsk()), "if everything sold at asking") +
+    statCard("Net profit (all time)", money(all.profit), all.soldCount + " completed sales · " + state.sales.filter(function(s){return s.returned;}).length + " returns") +
+    statCard("Sell-through (all time)", all.acquired ? (Math.round(all.sellThrough*10)/10) + "%" : "—", all.soldCount + " sold of " + all.acquired + " acquired") +
+    statCard("Avg days to sell", all.soldCount ? String(Math.round(all.avgDays)) : "—", "acquired → sold, completed sales");
+  var recent = state.sales.slice().sort(function(a,b){ return a.date < b.date ? 1 : -1; }).slice(0,6);
+  $("dashRecent").innerHTML = recent.length ? '<div class="tblwrap"><table><thead><tr><th>Date</th><th>Item</th><th>Platform</th><th class="num">Net profit</th></tr></thead><tbody>' +
+    recent.map(function(s){ return "<tr><td>" + fmtDate(s.date) + "</td><td>" + esc(s.itemTitle) + (s.returned ? ' <span class="badge low">RETURNED</span>' : "") + '</td><td>' + esc(platformLabel(s.platform)) + '</td><td class="num">' + money(saleNet(s)) + "</td></tr>"; }).join("") + "</tbody></table></div>" : '<p class="hint">No sales yet — record your first one in the Sales tab.</p>';
+  var oldest = active.slice().sort(function(a,b){ return itemAgeDays(b) - itemAgeDays(a); }).slice(0,6);
+  $("dashOldest").innerHTML = oldest.length ? '<div class="tblwrap"><table><thead><tr><th>Item</th><th>Acquired</th><th class="num">Age</th><th class="num">Your cost</th><th class="num">Asking</th></tr></thead><tbody>' +
+    oldest.map(function(it){ return "<tr><td>" + esc(it.title) + '</td><td>' + fmtDate(it.dateAcquired) + '</td><td class="num">' + ageBadge(it) + '</td><td class="num">' + money(itemTotalCost(it)) + '</td><td class="num">' + (num(it.askingPrice) ? money(it.askingPrice) : "—") + "</td></tr>"; }).join("") + "</tbody></table></div>" : '<p class="hint">Nothing in stock.</p>';
+}
+var editingItemId = null, editingTripId = null;
+function renderInventory(){
+  var filter = $("invFilter").value, q = $("invSearch").value.trim().toLowerCase();
+  var list = state.items.filter(function(it){
+    if(filter === "active" && !isActive(it)) return false;
+    if(filter === "stock" && it.status !== "stock") return false;
+    if(filter === "listed" && it.status !== "listed") return false;
+    if(filter === "sold" && it.status !== "sold") return false;
+    if(filter === "gone" && !(it.status === "donated" || it.status === "dead")) return false;
+    if(q){ var hay = (it.title + " " + it.bin + " " + it.sourceName + " " + it.category).toLowerCase(); if(hay.indexOf(q) < 0) return false; }
+    return true;
+  });
+  list.sort(function(a,b){ return a.dateAcquired < b.dateAcquired ? 1 : -1; });
+  var costSum = round2(list.reduce(function(t,it){ return t + itemTotalCost(it); }, 0));
+  $("invStats").textContent = "Showing " + list.length + " item" + (list.length===1?"":"s") + " · combined cost " + money(costSum) + ".";
+  $("invBody").innerHTML = list.length ? list.map(function(it){
+    var plats = it.platforms.length ? ' <span class="hint">(' + it.platforms.map(platformLabel).join(", ") + ")</span>" : "";
+    return "<tr><td><b>" + esc(it.title) + "</b>" + (it.demo ? ' <span class="badge mut">sample</span>' : "") + (it.bin ? '<br><span class="hint">' + esc(it.bin) + "</span>" : "") + '</td><td>' + esc(sourceLabel(it.sourceType)) + (it.sourceName ? "<br><span class=\"hint\">" + esc(it.sourceName) + "</span>" : "") + '</td><td>' + fmtDate(it.dateAcquired) + '</td><td class="num">' + ageBadge(it) + '</td><td class="num">' + money(itemTotalCost(it)) + '</td><td class="num">' + (num(it.askingPrice) ? money(it.askingPrice) : "—") + '</td><td>' + esc(statusLabel(it.status)) + plats + '</td><td style="white-space:nowrap;"><button type="button" class="btn ghost small" data-edit-item="' + esc(it.id) + '">Edit</button> <button type="button" class="btn danger small" data-del-item="' + esc(it.id) + '">Delete</button></td></tr>';
+  }).join("") : '<tr><td colspan="8" class="hint">No items match. Add one above.</td></tr>';
+  var a90 = agedItems(90), a180 = agedItems(180);
+  var rows = a90.slice().sort(function(a,b){ return itemAgeDays(b) - itemAgeDays(a); }).map(function(it){
+    return "<tr><td><b>" + esc(it.title) + '</b></td><td>' + fmtDate(it.dateAcquired) + '</td><td class="num">' + ageBadge(it) + '</td><td class="num">' + money(itemTotalCost(it)) + '</td><td class="num">' + (num(it.askingPrice) ? money(it.askingPrice) : "—") + "</td></tr>";
+  }).join("");
+  $("agingReport").innerHTML =
+    '<div class="cards">' +
+    statCard("Sitting 90+ days", money(agedCost(a90)), a90.length + " items") +
+    statCard("Dead pile 180+ days", money(agedCost(a180)), a180.length + " items") +
+    statCard("All unsold inventory", money(inventoryAtCost()), state.items.filter(isActive).length + " items") +
+    "</div>" +
+    (a90.length ? '<div class="tblwrap"><table><thead><tr><th>Item</th><th>Acquired</th><th class="num">Age</th><th class="num">Your cost</th><th class="num">Asking</th></tr></thead><tbody>' + rows + "</tbody></table></div>" : '<p class="hint">Nothing has been sitting 90 days yet. Keep it that way.</p>');
+  fillItemSelects();
+}
+function renderSales(){
+  var total = periodStats("all");
+  var retCount = state.sales.filter(function(s){ return s.returned; }).length;
+  $("salesStats").textContent = state.sales.length + " sales recorded · " + total.soldCount + " completed · " + retCount + " returned · net profit " + money(total.profit) + " (all time).";
+  var list = state.sales.slice().sort(function(a,b){ return a.date < b.date ? 1 : -1; });
+  $("salesBody").innerHTML = list.length ? list.map(function(s){
+    var acts = s.returned
+      ? '<button type="button" class="btn ghost small" data-undo-return="' + esc(s.id) + '">Undo return</button>'
+      : '<button type="button" class="btn ghost small" data-return-sale="' + esc(s.id) + '">Return</button>';
+    return "<tr" + (s.returned ? ' style="opacity:.65;"' : "") + "><td>" + fmtDate(s.date) + "</td><td><b>" + esc(s.itemTitle) + "</b>" + (s.demo ? ' <span class="badge mut">sample</span>' : "") + (s.returned ? ' <span class="badge low">RETURNED ' + fmtDate(s.returnDate||"") + "</span>" : "") + '</td><td>' + esc(platformLabel(s.platform)) + '</td><td class="num">' + money(s.salePrice) + '</td><td class="num">' + money(s.feeAmt) + ' <span class="hint">(' + s.feePct + '%)</span></td><td class="num">' + money(saleShipNet(s)) + '</td><td class="num">' + money(s.cogs) + '</td><td class="num"><b>' + money(saleNet(s)) + '</b></td><td style="white-space:nowrap;">' + acts + ' <button type="button" class="btn danger small" data-del-sale="' + esc(s.id) + '">Delete</button></td></tr>';
+  }).join("") : '<tr><td colspan="9" class="hint">No sales yet.</td></tr>';
+  fillItemSelects();
+}
+function renderTrips(){
+  var totalSpent = round2(state.trips.reduce(function(t,tr){ return t + num(tr.totalSpent); }, 0));
+  var totalItems = state.trips.reduce(function(t,tr){ return t + num(tr.itemCount); }, 0);
+  $("tripStats").textContent = state.trips.length + " trips · " + money(totalSpent) + " spent · " + totalItems + " items bought · " + (totalItems ? money(totalSpent/totalItems) : "$0.00") + " average cost per item.";
+  var list = state.trips.slice().sort(function(a,b){ return a.date < b.date ? 1 : -1; });
+  $("tripBody").innerHTML = list.length ? list.map(function(tr){
+    var linked = state.items.filter(function(it){ return it.tripId === tr.id; }).length;
+    return "<tr><td>" + fmtDate(tr.date) + "</td><td><b>" + esc(tr.source) + "</b>" + (tr.demo ? ' <span class="badge mut">sample</span>' : "") + '<br><span class="hint">' + esc(sourceLabel(tr.kind)) + "</span></td>" + '</td><td class="num">' + money(tr.totalSpent) + '</td><td class="num">' + tr.itemCount + '</td><td class="num">' + (num(tr.itemCount) ? money(num(tr.totalSpent)/num(tr.itemCount)) : "—") + '</td><td class="num">' + linked + '</td><td style="white-space:nowrap;"><button type="button" class="btn ghost small" data-edit-trip="' + esc(tr.id) + '">Edit</button> <button type="button" class="btn danger small" data-del-trip="' + esc(tr.id) + '">Delete</button></td></tr>';
+  }).join("") : '<tr><td colspan="7" class="hint">No trips logged yet.</td></tr>';
+  fillItemSelects();
+}
+function yearsPresent(){
+  var set = {};
+  state.sales.forEach(function(s){ set[s.date.slice(0,4)] = true; });
+  state.items.forEach(function(it){ set[it.dateAcquired.slice(0,4)] = true; });
+  set[todayStr().slice(0,4)] = true;
+  return Object.keys(set).sort().reverse();
+}
+function renderMoney(){
+  var ysel = $("moneyYear");
+  var cur = ysel.value || "all";
+  ysel.innerHTML = '<option value="all">All time</option>' + yearsPresent().map(function(y){ return '<option value="' + y + '">' + y + "</option>"; }).join("");
+  ysel.value = (cur === "all" || yearsPresent().indexOf(cur) >= 0) ? cur : "all";
+  var period = ysel.value;
+  var st = periodStats(period);
+  $("moneyStats").innerHTML =
+    statCard("Gross sales", money(st.gross), st.soldCount + " completed sales") +
+    statCard("Platform fees", money(st.fees), "kept by the platforms") +
+    statCard("Net profit", money(st.profit), "after fees, shipping, COGS, returns") +
+    statCard("Sell-through", st.acquired ? (Math.round(st.sellThrough*10)/10) + "%" : "—", st.soldCount + " sold ÷ " + st.acquired + " acquired") +
+    statCard("Avg days to sell", st.soldCount ? String(Math.round(st.avgDays)) : "—", "completed sales in period");
+  function groupTable(keyFn, labelFn){
+    var groups = {};
+    st.sales.forEach(function(s){
+      var k = keyFn(s); if(!groups[k]) groups[k] = { label: labelFn(s), count: 0, gross: 0, fees: 0, profit: 0 };
+      groups[k].profit = round2(groups[k].profit + saleNet(s));
+      if(!s.returned){ groups[k].count++; groups[k].gross = round2(groups[k].gross + num(s.salePrice)); groups[k].fees = round2(groups[k].fees + num(s.feeAmt)); }
+    });
+    return groups;
+  }
+  var byPlat = groupTable(function(s){ return s.platform; }, function(s){ return platformLabel(s.platform); });
+  $("byPlatformBody").innerHTML = Object.keys(byPlat).length ? Object.keys(byPlat).sort(function(a,b){ return byPlat[b].profit - byPlat[a].profit; }).map(function(k){
+    var g = byPlat[k]; return "<tr><td>" + esc(g.label) + '</td><td class="num">' + g.count + '</td><td class="num">' + money(g.gross) + '</td><td class="num">' + money(g.fees) + '</td><td class="num"><b>' + money(g.profit) + "</b></td></tr>";
+  }).join("") + '<tr class="tot"><td>Total</td><td class="num">' + st.soldCount + '</td><td class="num">' + money(st.gross) + '</td><td class="num">' + money(st.fees) + '</td><td class="num">' + money(st.profit) + "</td></tr>" : '<tr><td colspan="5" class="hint">No sales in this period.</td></tr>';
+  var byMonth = groupTable(function(s){ return s.date.slice(0,7); }, function(s){ return s.date.slice(0,7); });
+  $("byMonthBody").innerHTML = Object.keys(byMonth).length ? Object.keys(byMonth).sort().reverse().map(function(k){
+    var g = byMonth[k]; return "<tr><td>" + esc(g.label) + '</td><td class="num">' + g.count + '</td><td class="num">' + money(g.gross) + '</td><td class="num"><b>' + money(g.profit) + "</b></td></tr>";
+  }).join("") : '<tr><td colspan="4" class="hint">No sales in this period.</td></tr>';
+  var byCat = groupTable(function(s){ return s.category; }, function(s){ return s.category; });
+  $("byCategoryBody").innerHTML = Object.keys(byCat).length ? Object.keys(byCat).sort(function(a,b){ return byCat[b].profit - byCat[a].profit; }).map(function(k){
+    var g = byCat[k]; return "<tr><td>" + esc(g.label) + '</td><td class="num">' + g.count + '</td><td class="num">' + money(g.gross) + '</td><td class="num"><b>' + money(g.profit) + "</b></td></tr>";
+  }).join("") : '<tr><td colspan="4" class="hint">No sales in this period.</td></tr>';
+  renderTax();
+}
+function taxFigures(year){
+  var sales = salesInYear(year);
+  var comp = completedSales(sales), ret = sales.filter(function(s){ return s.returned; });
+  var sum = function(list, f){ return round2(list.reduce(function(t,s){ return t + num(f(s)); }, 0)); };
+  return {
+    count: comp.length, returns: ret.length,
+    gross: sum(comp, function(s){ return s.salePrice; }),
+    shipCharged: sum(comp, function(s){ return s.shipCharged; }),
+    fees: sum(comp, function(s){ return s.feeAmt; }),
+    shipPaid: round2(sum(comp, function(s){ return s.shipCost; }) + sum(ret, function(s){ return num(s.shipCost) + num(s.returnShipCost); })),
+    other: sum(comp, function(s){ return s.otherCosts; }),
+    cogs: sum(comp, function(s){ return s.cogs; }),
+    net: round2(sales.reduce(function(t,s){ return t + saleNet(s); }, 0)),
+    acquired: state.items.filter(function(it){ return it.dateAcquired.slice(0,4) === String(year); }).length
+  };
+}
+function renderTax(){
+  var tsel = $("taxYear");
+  var cur = tsel.value || todayStr().slice(0,4);
+  var years = yearsPresent();
+  tsel.innerHTML = years.map(function(y){ return '<option value="' + y + '">' + y + "</option>"; }).join("");
+  tsel.value = years.indexOf(cur) >= 0 ? cur : years[0];
+  var f = taxFigures(tsel.value);
+  function row(label, val, bold){ return "<tr" + (bold ? ' class="tot"' : "") + "><td>" + esc(label) + '</td><td class="num">' + money(val) + "</td></tr>"; }
+  $("taxSummary").innerHTML = '<div class="tblwrap"><table><tbody>' +
+    row("Gross sales (" + f.count + " completed)", f.gross) +
+    row("Shipping charged to buyers", f.shipCharged) +
+    row("Platform fees", -f.fees) +
+    row("Shipping you paid (incl. returns)", -f.shipPaid) +
+    row("Other selling costs", -f.other) +
+    row("Cost of goods sold", -f.cogs) +
+    row("Net profit", f.net, true) +
+    "</tbody></table></div>" +
+    '<p class="hint">' + f.acquired + " items acquired in " + esc(tsel.value) + " · " + f.returns + " returned sale" + (f.returns===1?"":"s") + " (postage both ways is inside 'Shipping you paid'). Bookkeeping records — not tax advice.</p>";
+}
+function renderSettings(){
+  $("setSeller").value = state.settings.sellerName;
+  $("setBiz").value = state.settings.businessName;
+  PLATFORMS.forEach(function(p){
+    var inp = $("fee_" + p.k);
+    if(inp) inp.value = (state.settings.fees[p.k] === null || state.settings.fees[p.k] === undefined) ? "" : state.settings.fees[p.k];
+  });
+}
+function renderAll(){ renderHeader(); renderDashboard(); renderInventory(); renderSales(); renderTrips(); renderMoney(); renderSettings(); }
+
+/* ---------- form helpers ---------- */
+function fillStaticSelects(){
+  $("itCategory").innerHTML = CATEGORIES.map(function(c){ return '<option value="' + esc(c) + '">' + esc(c) + "</option>"; }).join("");
+  $("itSourceType").innerHTML = SOURCE_TYPES.map(function(s){ return '<option value="' + s.k + '">' + esc(s.label) + "</option>"; }).join("");
+  $("trKind").innerHTML = SOURCE_TYPES.map(function(s){ return '<option value="' + s.k + '">' + esc(s.label) + "</option>"; }).join("");
+  $("itStatus").innerHTML = ITEM_STATUSES.filter(function(s){ return s.k !== "sold"; }).map(function(s){ return '<option value="' + s.k + '">' + esc(s.label) + "</option>"; }).join("");
+  $("itPlatforms").innerHTML = PLATFORMS.map(function(p){ return '<label><input type="checkbox" name="itPlat" value="' + p.k + '"> ' + esc(p.label) + "</label>"; }).join("");
+  $("saPlatform").innerHTML = PLATFORMS.map(function(p){ return '<option value="' + p.k + '">' + esc(p.label) + "</option>"; }).join("");
+  $("feeGrid").innerHTML = PLATFORMS.map(function(p){ return '<div><label for="fee_' + p.k + '">' + esc(p.label) + ' fee %</label><input inputmode="decimal" id="fee_' + p.k + '" type="number" step="0.01" min="0" max="100" placeholder="blank — set from a payout statement"></div>'; }).join("");
+}
+function fillItemSelects(){
+  var tripSel = $("itTrip");
+  var curTrip = tripSel.value;
+  tripSel.innerHTML = '<option value="">— none —</option>' + state.trips.slice().sort(function(a,b){ return a.date < b.date ? 1 : -1; }).map(function(tr){ return '<option value="' + esc(tr.id) + '">' + fmtDate(tr.date) + " — " + esc(tr.source) + "</option>"; }).join("");
+  tripSel.value = curTrip || "";
+  var itemSel = $("saItem");
+  var curItem = itemSel.value;
+  var avail = state.items.filter(isActive);
+  itemSel.innerHTML = avail.length ? avail.map(function(it){ return '<option value="' + esc(it.id) + '">' + esc(it.title) + " (cost " + money(itemTotalCost(it)) + ")</option>"; }).join("") : '<option value="">— no items in stock —</option>';
+  if(curItem && avail.some(function(it){ return it.id === curItem; })) itemSel.value = curItem;
+}
+function warn(id, msg){ var w = $(id); if(!w) return; if(msg){ w.textContent = msg; w.style.display = "block"; } else { w.textContent = ""; w.style.display = "none"; } }
+function armButton(btn, label, fn){
+  if(btn.getAttribute("data-armed") === "1"){ btn.removeAttribute("data-armed"); btn.classList.remove("armed"); btn.textContent = label; fn(); return; }
+  btn.setAttribute("data-armed", "1"); btn.classList.add("armed"); btn.textContent = "Tap again to confirm";
+  setTimeout(function(){ btn.removeAttribute("data-armed"); btn.classList.remove("armed"); btn.textContent = label; }, 3500);
+}
+
+/* ---------- print ---------- */
+function printHTML(title, body){
+  $("printArea").innerHTML = "<h1>" + esc(title) + "</h1>" +
+    '<p class="muted">' + esc(state.settings.businessName || state.settings.sellerName || "ResaleLedger records") + " · Generated " + fmtDate(todayStr()) + "</p>" + body +
+    '<p class="muted" style="margin-top:14px;">Prepared with ResaleLedger from the seller\'s own records. Bookkeeping summary — not a tax return and not tax advice.</p>';
+  window.print();
+}
+function printTax(){
+  var year = $("taxYear").value;
+  var f = taxFigures(year);
+  function row(l, v){ return "<tr><td>" + esc(l) + '</td><td style="text-align:right;">' + money(v) + "</td></tr>"; }
+  printHTML("Tax-Season Summary — " + year,
+    "<table>" + row("Gross sales (" + f.count + " completed)", f.gross) + row("Shipping charged to buyers", f.shipCharged) +
+    row("Platform fees", -f.fees) + row("Shipping paid (incl. returns both ways)", -f.shipPaid) + row("Other selling costs", -f.other) +
+    row("Cost of goods sold", -f.cogs) + row("Net profit", f.net) + "</table>" +
+    "<p>Items acquired in " + esc(year) + ": " + f.acquired + " · Returned sales: " + f.returns + ".</p>");
+}
+function printInv(){
+  var active = state.items.filter(isActive);
+  var rows = active.map(function(it){ return "<tr><td>" + esc(it.title) + "</td><td>" + fmtDate(it.dateAcquired) + '</td><td style="text-align:right;">' + money(itemTotalCost(it)) + '</td><td style="text-align:right;">' + (num(it.askingPrice) ? money(it.askingPrice) : "—") + "</td></tr>"; }).join("");
+  printHTML("Inventory Valuation — " + fmtDate(todayStr()),
+    "<table><tr><th>Item</th><th>Acquired</th><th>Cost</th><th>Asking</th></tr>" + rows + "</table>" +
+    "<p>Total at cost: <b>" + money(inventoryAtCost()) + "</b> · Total at asking: <b>" + money(inventoryAtAsk()) + "</b> · " + active.length + " items.</p>");
+}
+
+/* ---------- wiring ---------- */
+function init(){
+  load();
+  fillStaticSelects();
+  renderAll();
+  $("tabbar").addEventListener("click", function(e){
+    var b = e.target.closest ? e.target.closest("button[data-tab]") : null;
+    if(b) showTab(b.getAttribute("data-tab"));
+  });
+  /* --- item form --- */
+  $("itemForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var title = $("itTitle").value.trim();
+    var date = $("itDate").value;
+    if(!title) return warn("itemWarn", "Give the item a title.");
+    if(!isValidDateStr(date)) return warn("itemWarn", "Pick a valid date acquired.");
+    warn("itemWarn", "");
+    var plats = [];
+    document.querySelectorAll('input[name="itPlat"]:checked').forEach(function(cb){ plats.push(cb.value); });
+    var status = $("itStatus").value;
+    var data = {
+      title: title.slice(0,140), category: $("itCategory").value,
+      sourceType: $("itSourceType").value, sourceName: $("itSourceName").value.trim().slice(0,80),
+      tripId: $("itTrip").value || null, dateAcquired: date,
+      itemCost: clampMoney($("itCost").value), tripAlloc: clampMoney($("itAlloc").value),
+      bin: $("itBin").value.trim().slice(0,40), status: status, platforms: plats,
+      askingPrice: clampMoney($("itAsk").value), notes: $("itNotes").value.trim().slice(0,400)
+    };
+    if(editingItemId){
+      var it = itemById(editingItemId);
+      if(it){ if(it.status === "sold") data.status = "sold"; for(var k in data) it[k] = data[k]; }
+      toast("Item updated.");
+    } else {
+      data.id = uid(); data.demo = false;
+      state.items.push(sanitizeItem(data));
+      toast("Item added.");
+    }
+    editingItemId = null;
+    $("itemForm").reset(); $("itDate").value = todayStr();
+    $("itemFormTitle").textContent = "Add an item"; $("itemSaveBtn").textContent = "Add item"; $("itemCancelBtn").style.display = "none";
+    save(); renderAll();
+  });
+  $("itemCancelBtn").addEventListener("click", function(){
+    editingItemId = null; $("itemForm").reset(); $("itDate").value = todayStr();
+    $("itemFormTitle").textContent = "Add an item"; $("itemSaveBtn").textContent = "Add item"; $("itemCancelBtn").style.display = "none";
+  });
+  $("invFilter").addEventListener("change", renderInventory);
+  $("invSearch").addEventListener("input", renderInventory);
+  /* --- sale form --- */
+  $("saPlatform").addEventListener("change", function(){
+    var d = state.settings.fees[$("saPlatform").value];
+    if(d !== null && d !== undefined) $("saFeePct").value = d;
+  });
+  $("saItem").addEventListener("change", function(){
+    var it = itemById($("saItem").value);
+    if(it && num(it.askingPrice) > 0 && !$("saPrice").value) $("saPrice").value = it.askingPrice;
+  });
+  $("saleForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var it = itemById($("saItem").value);
+    if(!it) return warn("saleWarn", "Pick an item that's in stock.");
+    if(!isActive(it)) return warn("saleWarn", "That item isn't in stock anymore.");
+    var date = $("saDate").value;
+    if(!isValidDateStr(date)) return warn("saleWarn", "Pick a valid sale date.");
+    var price = clampMoney($("saPrice").value);
+    if(!(price > 0)) return warn("saleWarn", "Enter the sale price (greater than $0).");
+    var feePctRaw = $("saFeePct").value;
+    if(feePctRaw === "" || !isFinite(parseFloat(feePctRaw))) return warn("saleWarn", "Enter the platform fee % this sale actually cost (0 for local/cash sales). It's on the payout statement.");
+    var feePct = Math.min(100, Math.max(0, num(feePctRaw)));
+    warn("saleWarn", "");
+    var sa = sanitizeSale({
+      id: uid(), itemId: it.id, date: date, platform: $("saPlatform").value,
+      itemTitle: it.title, category: it.category, salePrice: price, feePct: feePct,
+      shipCharged: clampMoney($("saShipCharged").value), shipCost: clampMoney($("saShipCost").value),
+      otherCosts: clampMoney($("saOther").value), cogs: itemTotalCost(it),
+      notes: $("saNotes").value.trim().slice(0,300), returned: false, demo: false
+    }, (function(){ var m = {}; m[it.id] = true; return m; })());
+    state.sales.push(sa);
+    it.status = "sold";
+    save(); renderAll();
+    toast("Sale recorded — net profit " + money(saleNet(sa)) + ".");
+  });
+  /* --- returns --- */
+  function openReturn(saleId){
+    var comp = state.sales.filter(function(s){ return !s.returned; });
+    $("rtSale").innerHTML = comp.map(function(s){ return '<option value="' + esc(s.id) + '">' + fmtDate(s.date) + " — " + esc(s.itemTitle) + " (" + money(s.salePrice) + ")</option>"; }).join("");
+    if(saleId) $("rtSale").value = saleId;
+    $("rtDate").value = todayStr(); $("rtShip").value = "";
+    $("returnCard").style.display = "block";
+    $("returnCard").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  $("rtCancel").addEventListener("click", function(){ $("returnCard").style.display = "none"; });
+  $("returnForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var s = saleById($("rtSale").value);
+    if(!s || s.returned) return warn("returnWarn", "Pick a completed sale to return.");
+    var date = $("rtDate").value;
+    if(!isValidDateStr(date)) return warn("returnWarn", "Pick a valid return date.");
+    warn("returnWarn", "");
+    s.returned = true; s.returnDate = date; s.returnShipCost = clampMoney($("rtShip").value);
+    var it = itemById(s.itemId);
+    if(it && it.status === "sold") it.status = it.platforms.length ? "listed" : "stock";
+    $("returnCard").style.display = "none";
+    save(); renderAll();
+    toast("Return recorded — the sale reversed and the item is back in stock.");
+  });
+  /* --- trip form --- */
+  $("tripForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var date = $("trDate").value, source = $("trSource").value.trim();
+    if(!isValidDateStr(date)) return warn("tripWarn", "Pick a valid date.");
+    if(!source) return warn("tripWarn", "Name the source.");
+    if($("trSpent").value === "" || $("trCount").value === "") return warn("tripWarn", "Enter total spent and how many items you bought.");
+    warn("tripWarn", "");
+    var data = { date: date, source: source.slice(0,80), kind: $("trKind").value, totalSpent: clampMoney($("trSpent").value), itemCount: Math.max(0, Math.round(num($("trCount").value))), notes: $("trNotes").value.trim().slice(0,300) };
+    if(editingTripId){
+      var tr = tripById(editingTripId);
+      if(tr){ for(var k in data) tr[k] = data[k]; }
+      toast("Trip updated.");
+    } else {
+      data.id = uid(); data.demo = false;
+      state.trips.push(sanitizeTrip(data));
+      toast("Trip logged.");
+    }
+    editingTripId = null;
+    $("tripForm").reset(); $("trDate").value = todayStr();
+    $("tripFormTitle").textContent = "Log a sourcing trip"; $("tripSaveBtn").textContent = "Add trip"; $("tripCancelBtn").style.display = "none";
+    save(); renderAll();
+  });
+  $("tripCancelBtn").addEventListener("click", function(){
+    editingTripId = null; $("tripForm").reset(); $("trDate").value = todayStr();
+    $("tripFormTitle").textContent = "Log a sourcing trip"; $("tripSaveBtn").textContent = "Add trip"; $("tripCancelBtn").style.display = "none";
+  });
+  /* --- money/tax --- */
+  $("moneyYear").addEventListener("change", renderMoney);
+  $("taxYear").addEventListener("change", renderTax);
+  $("printTaxBtn").addEventListener("click", printTax);
+  $("printInvBtn").addEventListener("click", printInv);
+  /* --- settings --- */
+  $("settingsForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    state.settings.sellerName = $("setSeller").value.trim().slice(0,80);
+    state.settings.businessName = $("setBiz").value.trim().slice(0,80);
+    PLATFORMS.forEach(function(p){
+      var v = $("fee_" + p.k).value;
+      state.settings.fees[p.k] = (v === "" || !isFinite(parseFloat(v))) ? null : Math.min(100, Math.max(0, num(v)));
+    });
+    save(); renderAll();
+    toast("Settings saved.");
+  });
+  /* --- backup --- */
+  $("exportBtn").addEventListener("click", function(){
+    var payload = JSON.stringify(state, null, 2);
+    var blob = new Blob([payload], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "resaleledger-backup-" + todayStr() + ".json";
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ try{ URL.revokeObjectURL(a.href); }catch(e){} a.remove(); }, 400);
+    toast("Backup downloaded.");
+  });
+  function doImport(text){
+    var parsed;
+    try{ parsed = JSON.parse(text); }catch(e){ return warn("importWarn", "That file isn't valid JSON — nothing was imported."); }
+    if(!parsed || typeof parsed !== "object" || Array.isArray(parsed) || parsed.app !== APP_TAG) return warn("importWarn", "That isn't a ResaleLedger backup — nothing was imported.");
+    warn("importWarn", "");
+    state = sanitizeState(parsed);
+    editingItemId = null; editingTripId = null;
+    save(); renderAll();
+    toast("Backup imported.");
+  }
+  $("importTextBtn").addEventListener("click", function(){ doImport($("importText").value); });
+  $("importFile").addEventListener("change", function(){
+    var f = this.files && this.files[0];
+    if(!f) return;
+    var reader = new FileReader();
+    reader.onload = function(){ doImport(String(reader.result||"")); };
+    reader.onerror = function(){ warn("importWarn", "Couldn't read that file — nothing was imported."); };
+    reader.readAsText(f);
+    this.value = "";
+  });
+  $("clearDemoBtn").addEventListener("click", function(){
+    armButton(this, "Clear sample data only", function(){
+      clearDemo(); save(); renderAll(); toast("Sample data cleared — your entries are untouched.");
+    });
+  });
+  $("eraseBtn").addEventListener("click", function(){
+    armButton(this, "Erase EVERYTHING", function(){
+      state = defaultState(); state.meta.demoCleared = true;
+      editingItemId = null; editingTripId = null;
+      save(); renderAll(); toast("Everything erased. Fresh start.");
+    });
+  });
+  /* --- delegated row actions --- */
+  document.addEventListener("click", function(e){
+    var t = e.target;
+    if(!t || !t.getAttribute) return;
+    var editItem = t.getAttribute("data-edit-item"), delItem = t.getAttribute("data-del-item");
+    var editTrip = t.getAttribute("data-edit-trip"), delTrip = t.getAttribute("data-del-trip");
+    var delSale = t.getAttribute("data-del-sale"), retSale = t.getAttribute("data-return-sale"), undoRet = t.getAttribute("data-undo-return");
+    if(editItem){
+      var it = itemById(editItem); if(!it) return;
+      editingItemId = it.id;
+      $("itTitle").value = it.title; $("itCategory").value = it.category; $("itSourceType").value = it.sourceType;
+      $("itSourceName").value = it.sourceName; $("itTrip").value = it.tripId || ""; $("itDate").value = it.dateAcquired;
+      $("itCost").value = it.itemCost; $("itAlloc").value = it.tripAlloc; $("itBin").value = it.bin;
+      $("itStatus").value = it.status === "sold" ? "stock" : it.status;
+      $("itAsk").value = it.askingPrice || ""; $("itNotes").value = it.notes;
+      document.querySelectorAll('input[name="itPlat"]').forEach(function(cb){ cb.checked = it.platforms.indexOf(cb.value) >= 0; });
+      $("itemFormTitle").textContent = "Edit item" + (it.status === "sold" ? " (sold — status stays Sold)" : "");
+      $("itemSaveBtn").textContent = "Save changes"; $("itemCancelBtn").style.display = "inline-block";
+      showTab("inventory"); window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    if(delItem){
+      armButton(t, "Delete", function(){
+        var hasSales = state.sales.some(function(s){ return s.itemId === delItem; });
+        if(hasSales){ toast("That item has sales recorded — delete its sales first so the books stay honest."); return; }
+        state.items = state.items.filter(function(x){ return x.id !== delItem; });
+        if(editingItemId === delItem) editingItemId = null;
+        save(); renderAll(); toast("Item deleted.");
+      });
+    }
+    if(editTrip){
+      var tr = tripById(editTrip); if(!tr) return;
+      editingTripId = tr.id;
+      $("trDate").value = tr.date; $("trSource").value = tr.source; $("trKind").value = tr.kind;
+      $("trSpent").value = tr.totalSpent; $("trCount").value = tr.itemCount; $("trNotes").value = tr.notes;
+      $("tripFormTitle").textContent = "Edit sourcing trip"; $("tripSaveBtn").textContent = "Save changes"; $("tripCancelBtn").style.display = "inline-block";
+      showTab("sourcing"); window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    if(delTrip){
+      armButton(t, "Delete", function(){
+        state.trips = state.trips.filter(function(x){ return x.id !== delTrip; });
+        state.items.forEach(function(it){ if(it.tripId === delTrip) it.tripId = null; });
+        if(editingTripId === delTrip) editingTripId = null;
+        save(); renderAll(); toast("Trip deleted (items kept, just unlinked).");
+      });
+    }
+    if(delSale){
+      armButton(t, "Delete", function(){
+        var s = saleById(delSale); if(!s) return;
+        var it = itemById(s.itemId);
+        state.sales = state.sales.filter(function(x){ return x.id !== delSale; });
+        if(it && it.status === "sold" && !state.sales.some(function(x){ return x.itemId === it.id && !x.returned; })){
+          it.status = it.platforms.length ? "listed" : "stock";
+        }
+        save(); renderAll(); toast("Sale deleted.");
+      });
+    }
+    if(retSale){ showTab("sales"); openReturn(retSale); }
+    if(undoRet){
+      var s2 = saleById(undoRet); if(!s2) return;
+      var it2 = itemById(s2.itemId);
+      if(it2 && it2.status !== "sold" && state.sales.some(function(x){ return x.itemId === it2.id && !x.returned && x.id !== s2.id; })){
+        toast("That item has another completed sale — undo that one first."); return;
+      }
+      s2.returned = false; s2.returnDate = null; s2.returnShipCost = 0;
+      if(it2) it2.status = "sold";
+      save(); renderAll(); toast("Return undone — sale counts again.");
+    }
+  });
+  /* defaults */
+  $("itDate").value = todayStr(); $("saDate").value = todayStr(); $("trDate").value = todayStr(); $("rtDate").value = todayStr();
+  var d0 = state.settings.fees[$("saPlatform").value];
+  if(d0 !== null && d0 !== undefined) $("saFeePct").value = d0;
+}
+document.addEventListener("DOMContentLoaded", init);
+</script>
+
+<style id="ww-legal-css">
+.ww-legal-overlay{position:fixed;inset:0;z-index:99990;background:rgba(10,12,14,.72);display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box}
+.ww-legal-card{background:#fff;color:#17202a;border-radius:14px;max-width:560px;width:100%;max-height:92vh;overflow:auto;padding:22px 20px;box-sizing:border-box;box-shadow:0 18px 50px rgba(0,0,0,.35);font-family:inherit}
+.ww-legal-card h2{margin:0 0 4px;font-size:22px}
+.ww-legal-card h3{margin:16px 0 6px}
+.ww-legal-sum{font-size:16px;line-height:1.45;margin:12px 0}
+.ww-legal-sum p{margin:6px 0;font-weight:600}
+.ww-legal-note{font-size:13px;color:#445; margin:10px 0}
+.ww-legal-updated{background:#fff3cd;border:1px solid #e3c565;border-radius:8px;padding:8px 10px;font-size:14px;margin:10px 0}
+.ww-legal-btn{display:block;width:100%;min-height:48px;margin:10px 0;padding:12px 14px;font-size:16px;border-radius:10px;border:1px solid #9db2c3;background:#eef4f8;color:#17202a;cursor:pointer;box-sizing:border-box}
+.ww-legal-agree{background:#17603a;border-color:#17603a;color:#fff;font-weight:700}
+.ww-legal-page{position:fixed;inset:0;z-index:99980;background:#fff;color:#17202a;overflow:auto;padding:18px 16px 40px;box-sizing:border-box}
+.ww-legal-page .ww-legal-inner{max-width:680px;margin:0 auto}
+.ww-legal-page h2{font-size:21px}.ww-legal-page h3{font-size:17px;margin-top:18px}.ww-legal-page p,.ww-legal-page li{font-size:14.5px;line-height:1.55}
+.ww-legal-close{min-height:48px;padding:10px 18px;font-size:15px;border-radius:10px;border:1px solid #9db2c3;background:#eef4f8;cursor:pointer}
+.ww-legal-open-btn{min-height:48px}
+.ww-legal-check{display:flex;gap:10px;align-items:flex-start;margin:12px 0;font-size:15px;line-height:1.4;cursor:pointer;text-align:left}
+.ww-legal-check input{width:22px;height:22px;min-width:22px;margin-top:1px;cursor:pointer}
+.ww-legal-agree[disabled]{opacity:.45;cursor:not-allowed}
+[hidden]{display:none !important}
+</style>
+
+<div id="wwLegalOverlay" class="ww-legal-overlay" hidden>
+  <div class="ww-legal-card" role="dialog" aria-modal="true" aria-labelledby="wwLegalTitle">
+    <h2>ResaleLedger</h2>
+    <h3 id="wwLegalTitle" style="margin-top:2px">Terms of Use</h3>
+    <div id="wwLegalUpdated" class="ww-legal-updated" hidden>Our terms were updated (v1.0).</div>
+    <div class="ww-legal-sum">
+      <p>Your data stays on your device.</p>
+      <p>Estimates are aids, not guarantees.</p>
+      <p>You're responsible for checking outputs before you rely on them.</p>
+    </div>
+    <p class="ww-legal-note">The full Terms and Disclaimer are one tap away, now and any time in Settings → Legal.</p>
+    <button type="button" class="ww-legal-btn" id="wwLegalReadTerms">Read the full Terms</button>
+    
+    <label class="ww-legal-check" for="wwLegalCheck"><input type="checkbox" id="wwLegalCheck"><span>I have read and I agree to the Terms of Use</span></label>
+    <button type="button" class="ww-legal-btn ww-legal-agree" id="wwLegalAgree" disabled>I Agree</button>
+  </div>
+</div>
+<div id="wwLegalReader" class="ww-legal-page" hidden>
+  <div class="ww-legal-inner">
+    <button type="button" class="ww-legal-close" id="wwLegalReaderBack">← Back</button>
+    <div id="wwLegalReaderBody"></div>
+  </div>
+</div>
+<div id="wwLegalPage" class="ww-legal-page" hidden>
+  <div class="ww-legal-inner">
+    <button type="button" class="ww-legal-close" id="wwLegalPageClose">← Back</button>
+    <h2>Legal</h2>
+    <h3>Terms of Use</h3>
+    <div id="wwLegalTermsText"><h2>Terms of Use — White Wolf Digital Apps</h2>
+<p><strong>Version 1.0</strong></p>
+<p><strong>Seller: White Wolf Tree Service LLC, selling digital products under the name &quot;White Wolf Digital&quot;</strong></p>
+<p><strong>Contact: whitewolfoklahoma@gmail.com</strong></p>
+<hr>
+<h3>1. What you&#x27;re buying</h3>
+<p>Our apps (including ForgeFit AI, ForgeKitchen, TreeBid Pro, SnowBid,</p>
+<p>WashPrice Pro, RoofSquares, JobProfit Tracker, PastureLedger, and the other</p>
+<p>titles sold under White Wolf Digital) are single-file software tools. When</p>
+<p>you buy one, you are buying a <strong>license to use the file</strong>, not ownership of</p>
+<p>the software itself.</p>
+<h3>2. Your license</h3>
+<ul>
+<li>You may use the app for your own personal or business work.</li>
+<li>You may open it on your own devices (phone, tablet, computer) and move your</li>
+</ul>
+<p>  own data between them using the app&#x27;s built-in backup/export tools.</p>
+<ul>
+<li>You may <strong>not</strong> resell, redistribute, give away, upload, or share the app</li>
+</ul>
+<p>  file (or a copy of it) with anyone else — including posting it online,</p>
+<p>  bundling it with other products, or selling access to it.</p>
+<ul>
+<li>You may <strong>not</strong> claim the app as your own work, remove its branding or</li>
+</ul>
+<p>  notices, or use it to build a competing product for resale.</p>
+<ul>
+<li>One purchase = one buyer. A business purchase covers the buyer and their</li>
+</ul>
+<p>  own employees using it for that business&#x27;s work; it does not cover other</p>
+<p>  businesses.</p>
+<h3>3. Your data stays yours — and stays on your device</h3>
+<ul>
+<li>The current versions of our apps run <strong>entirely on your device</strong>. They have</li>
+</ul>
+<p>  no accounts, no sign-in, no analytics, and they collect, transmit, and store</p>
+<p>  <strong>none</strong> of your information on any server. We never see your data.</p>
+<ul>
+<li>Your records are stored in your browser/app storage on your device. **You</li>
+</ul>
+<p>  are responsible for backing them up** using the app&#x27;s export tools. If you</p>
+<p>  clear your browser data, lose your device, or uninstall the app, your</p>
+<p>  records may be permanently lost, and we cannot recover them — we never had</p>
+<p>  a copy.</p>
+<ul>
+<li>Files you export (backups, quotes, PDFs) are under your control. Where you</li>
+</ul>
+<p>  store or send them is up to you.</p>
+<h3>4. Estimates are tools, not guarantees</h3>
+<p>Every number our apps produce — bids, prices, costs, calorie targets,</p>
+<p>projections, schedules, totals — is an **estimate generated from the</p>
+<p>information you enter and the settings you choose**. Outputs are aids for</p>
+<p>your own judgment, not guarantees of price, profit, outcome, or result. You</p>
+<p>are responsible for checking any output before relying on it (see also the</p>
+<p>disclaimer that applies to your app: Health Disclaimer for fitness/nutrition</p>
+<p>apps, Estimator Disclaimer for contractor tools). If an input is wrong, the</p>
+<p>output will be wrong.</p>
+<h3>5. Acceptable use</h3>
+<p>Don&#x27;t use the apps to break the law, infringe anyone&#x27;s rights, or</p>
+<p>misrepresent quotes, invoices, or records to your own customers. For the</p>
+<p>fitness apps, the guardrails in the app (healthy-rate limits, calorie floor)</p>
+<p>are part of the product — don&#x27;t treat the app as a way around them.</p>
+<h3>6. Provided &quot;as is&quot;</h3>
+<p>The apps are provided **&quot;as is&quot; and &quot;as available,&quot; without warranties of</p>
+<p>any kind**, express or implied — including merchantability, fitness for a</p>
+<p>particular purpose, accuracy of calculations, and uninterrupted or</p>
+<p>error-free operation — to the maximum extent allowed by law. Software has</p>
+<p>bugs; browsers change; we work to fix problems but do not promise any app is</p>
+<p>error-free or will work on every device or browser forever.</p>
+<h3>7. Limitation of liability</h3>
+<p>To the maximum extent allowed by law:</p>
+<ul>
+<li>We are **not liable for indirect, incidental, special, or consequential</li>
+</ul>
+<p>  damages** — including lost profits, lost or mispriced jobs, lost data, or</p>
+<p>  business interruption — arising from use of the apps.</p>
+<ul>
+<li>Our total liability for any claim connected to an app is limited to the</li>
+</ul>
+<p>  <strong>amount you paid for that app</strong>.</p>
+<ul>
+<li>Nothing in these terms limits liability that cannot legally be limited.</li>
+</ul>
+<h3>8. Refunds</h3>
+<p>Refunds are handled **by the storefront you bought from, under that</p>
+<p>storefront&#x27;s policy** — Gumroad&#x27;s refund policy for Gumroad purchases, and</p>
+<p>Google Play&#x27;s refund policy for Play purchases. These terms do not add to,</p>
+<p>replace, or override the storefront&#x27;s refund rules. If a file is defective</p>
+<p>and won&#x27;t open, contact us at whitewolfoklahoma@gmail.com and we&#x27;ll fix or</p>
+<p>replace the file.</p>
+<h3>9. Updates and changes to these terms</h3>
+<ul>
+<li>We may release updated versions of an app. Updates may add, change, or</li>
+</ul>
+<p>  remove features.</p>
+<ul>
+<li>We may update these terms. The version you agreed to is recorded in the</li>
+</ul>
+<p>  app (version number and date) at first-run acceptance. If terms change,</p>
+<p>  the app may ask you to accept the new version once on next open. Updated</p>
+<p>  terms apply going forward, not retroactively.</p>
+<ul>
+<li>If you don&#x27;t agree to an updated version of the terms, stop using the app.</li>
+</ul>
+<h3>10. Governing law</h3>
+<p>These terms are governed by the laws of the <strong>State of Oklahoma</strong>, USA.</p>
+<p>(Attorney to confirm governing law and venue before publication.)</p>
+<h3>11. Contact</h3>
+<p>White Wolf Tree Service LLC (White Wolf Digital) —</p>
+<p>whitewolfoklahoma@gmail.com.</p>
+<hr>
+<h3>CONNECTED FEATURES — takes effect only when these features ship</h3>
+<p>*The sections below apply only to future connected features (device sync via</p>
+<p>Health Connect, AI voice logging, and the AI Goal Preview in ForgeFit). They</p>
+<p>do not apply to the current offline versions, which never transmit data.*</p>
+<ul>
+<li><strong>Opt-in only.</strong> Connected features are off by default. Each one asks for</li>
+</ul>
+<p>  your separate, explicit consent — on its own consent screen, in plain</p>
+<p>  language — before anything leaves your device. Declining never disables</p>
+<p>  the app&#x27;s offline features.</p>
+<ul>
+<li><strong>What gets sent.</strong> Only what the consent screen names, only when you use</li>
+</ul>
+<p>  the feature: for example, a meal description (text, or audio only if cloud</p>
+<p>  transcription is on) for AI voice logging, or the single photo you choose</p>
+<p>  for an AI Goal Preview.</p>
+<ul>
+<li><strong>No retention by us.</strong> Our relay service passes your request to the named</li>
+</ul>
+<p>  AI provider and keeps nothing — no copies of your photos, audio,</p>
+<p>  transcripts, or entries are stored on our servers. Provider handling is</p>
+<p>  described on the consent screen and in the Privacy Policy.</p>
+<ul>
+<li><strong>Health data stays on the device.</strong> Device sync (Health Connect) reads</li>
+</ul>
+<p>  your health data on your phone and stores it in the app on your phone. It</p>
+<p>  is not uploaded to us.</p>
+<ul>
+<li><strong>Allowances.</strong> Some connected features run on third-party AI services we</li>
+</ul>
+<p>  pay for per use, so they may include a monthly allowance described in the</p>
+<p>  app (for example, a set number of AI previews or voice entries per month),</p>
+<p>  with optional additional credits. Allowances and pricing will be shown in</p>
+<p>  the app before you use the feature; they are not a subscription unless the</p>
+<p>  app says so in plain words.</p>
+<ul>
+<li><strong>Permissions.</strong> Connected features may request device permissions (such</li>
+</ul>
+<p>  as Health Connect access or the microphone) at the moment you first use</p>
+<p>  them. You can revoke permissions any time in your device settings; the</p>
+<p>  related feature will simply stop working.</p></div>
+    
+    <h3>Privacy</h3>
+    <p>This app has no accounts and collects no data. Everything you enter is stored only on this device, in this browser's local storage. Nothing is uploaded, tracked, or shared. Exported backup files are under your control — where you store or send them is up to you. If you clear your browser data, lose your device, or uninstall the app, your records may be permanently lost, so keep backups using the app's export tools.</p>
+    <p id="wwLegalAcceptLine"></p>
+    <p><strong>Sold by White Wolf Tree Service LLC (White Wolf Digital) — whitewolfoklahoma@gmail.com</strong></p>
+  </div>
+</div>
+
+<script>
+/* White Wolf Digital — in-app legal pattern v1 (Terms acceptance + Settings > Legal) */
+const TERMS_VERSION = "1.0";
+(function(){
+  var WW_KEY = "resaleledger_v1";
+  var WW_SAVE = "save";
+  var WW_DISC = false;
+  function wwRaw(){ try{ var r = localStorage.getItem(WW_KEY); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
+  function wwStateObj(){ try{ if(typeof state !== "undefined" && state && typeof state === "object") return state; }catch(e){} return null; }
+  function wwGetLegal(){
+    var st = wwStateObj(); if(st && st.legal && typeof st.legal === "object") return st.legal;
+    var r = wwRaw(); if(r && r.legal && typeof r.legal === "object") return r.legal;
+    return null;
+  }
+  function wwPersist(rec){
+    var st = wwStateObj();
+    if(st){ st.legal = rec;
+      try{ if(WW_SAVE === "saveState" && typeof saveState === "function"){ saveState(); return; } }catch(e){}
+      try{ if(WW_SAVE === "save" && typeof save === "function"){ save(); return; } }catch(e){}
+    }
+    try{ var r = wwRaw() || {}; r.legal = rec; localStorage.setItem(WW_KEY, JSON.stringify(r)); }catch(e){}
+  }
+  function wwAcceptLine(){
+    var el = document.getElementById("wwLegalAcceptLine"); if(!el) return;
+    var rec = wwGetLegal();
+    if(rec && rec.acceptedDate) el.textContent = "You agreed to Terms v" + (rec.termsVersion || TERMS_VERSION) + " on " + rec.acceptedDate + ".";
+    else el.textContent = "No acceptance recorded yet on this device.";
+  }
+  function wwShowReader(which){
+    var body = document.getElementById("wwLegalReaderBody");
+    var src = document.getElementById(which === "disc" ? "wwLegalDiscText" : "wwLegalTermsText");
+    if(!body || !src) return;
+    body.innerHTML = src.innerHTML;
+    document.getElementById("wwLegalReader").hidden = false;
+  }
+  function wwOpenLegal(){ wwAcceptLine(); document.getElementById("wwLegalPage").hidden = false; }
+  window.__wwOpenLegal = wwOpenLegal;
+  document.addEventListener("click", function(ev){
+    var t = ev.target && ev.target.closest ? ev.target.closest("[data-ww-legal]") : null;
+    if(t){ ev.preventDefault(); wwOpenLegal(); }
+  });
+  var agreeBtn = document.getElementById("wwLegalAgree");
+  var wwCheck = document.getElementById("wwLegalCheck");
+  function wwGate(){ if(agreeBtn && wwCheck) agreeBtn.disabled = !wwCheck.checked; }
+  if(wwCheck) wwCheck.addEventListener("change", wwGate);
+  wwGate();
+  if(agreeBtn) agreeBtn.addEventListener("click", function(){
+    if(wwCheck && !wwCheck.checked){ wwGate(); return; }
+    var rec = { termsVersion: TERMS_VERSION, acceptedDate: new Date().toISOString().slice(0,10), disclaimerShown: WW_DISC };
+    wwPersist(rec);
+    document.getElementById("wwLegalOverlay").hidden = true;
+    wwAcceptLine();
+  });
+  var rt = document.getElementById("wwLegalReadTerms");
+  if(rt) rt.addEventListener("click", function(){ wwShowReader("terms"); });
+  var rd = document.getElementById("wwLegalReadDisc");
+  if(rd) rd.addEventListener("click", function(){ wwShowReader("disc"); });
+  var rb = document.getElementById("wwLegalReaderBack");
+  if(rb) rb.addEventListener("click", function(){ document.getElementById("wwLegalReader").hidden = true; });
+  var pc = document.getElementById("wwLegalPageClose");
+  if(pc) pc.addEventListener("click", function(){ document.getElementById("wwLegalPage").hidden = true; });
+  var rec = wwGetLegal();
+  if(rec && rec.termsVersion === TERMS_VERSION){
+    var st2 = wwStateObj();
+    if(st2 && !st2.legal) wwPersist(rec);
+    wwAcceptLine();
+  } else {
+    if(rec && rec.termsVersion){ var u = document.getElementById("wwLegalUpdated"); if(u) u.hidden = false; }
+    document.getElementById("wwLegalOverlay").hidden = false;
+  }
+})();
+</script>
+
+</body>
+</html>
